@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 
+feat_std=[]
+feat_mean=[]
+targ_std=0
+targ_mean=0
+
+
 def training_data():
 	"""
 		Get the training data (features and target) from the files
@@ -20,13 +26,10 @@ def training_data():
 			continue
 			
 		targets.append(row[len(row)-1])    #The target number of shares, the last column
-		
+		#features.append([row[2]])
 		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes
 		features.append(row[2:len(row)-1])
-		"""
-				
-		features.append(row[2:4])
-		"""
+
 	return features, targets			
 
 def test_data():
@@ -44,7 +47,7 @@ def test_data():
 			begin = False
 			continue
 		features.append(row[2:len(row)]) #Excluding the non-predictive attributes
-		#features.append(row[2:4]) #Excluding the non-predictive attributes
+		#features.append([row[2]])
 		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes
 		
 	begin = True		
@@ -63,43 +66,44 @@ def z_norm(x, mean, std):
 	x = (x - mean)/std
 
 	return x
-	
-def normalize_targ(v):
-	n_examples = len(v)
 
-	#print col
-	feat = []
-	for example in v:
-		feat.append(example)
-	mean=(np.mean(feat))
-	std=(np.std(feat))
+def get_stdnmean(dataset, n_feat):
 	
-	for i in range(n_examples):
-		v[i] = z_norm(v[i], mean, std)
 	
-	return v
+	if n_feat > 1:
+		mean = []
+		std = []
+		for col in range(n_feat):
+			#print col
+			feat = []
+			for example in dataset:
+				feat.append(example[col])
+			mean.append(np.mean(feat))
+			std.append(np.std(feat))
+	else:
+		feat = []
+		for example in dataset:
+			feat.append(example)
+		mean = np.mean(feat)
+		std = np.std(feat)
+		
+	return std, mean
 	
-def normalize(dataset):	
+def normalize(dataset, mean, std, n_feat):	
 	"""
 		Returns the z-norm of the dataset
 	"""
-	n_feat = len(dataset[0])
+
 	n_examples = len(dataset)
-	mean = []
-	std = []
-	
-	for col in range(n_feat):
-		#print col
-		feat = []
-		for example in dataset:
-			feat.append(example[col])
-		mean.append(np.mean(feat))
-		std.append(np.std(feat))
-	
-	for i in range(n_examples):
-		for j in range(n_feat):
-			dataset[i][j] = z_norm(dataset[i][j], mean[j], std[j])
-	
+	if n_feat > 1:	
+		for i in range(n_examples):
+			for j in range(n_feat):
+				dataset[i][j] = z_norm(dataset[i][j], mean[j], std[j])
+	else:
+		for i in range(n_examples):
+			dataset[i] = z_norm(dataset[i], mean, std)
+
+		
 	return dataset
 
 def predict(model, x, y):
@@ -112,7 +116,7 @@ def predict(model, x, y):
 			outputs[i] += model[1][j] * x[i][j]
 	
 	for i in range(len(outputs)):		
-		print "Predict = ", outputs[i], " Real = ", y[i]
+		print "Predict = ", get_num_shares(outputs[i], targ_std, targ_mean), " Real = ", get_num_shares(y[i], targ_std, targ_mean)
 	
 	plt.plot(outputs, 'bo', y, 'ro')
 	
@@ -124,27 +128,31 @@ def predict(model, x, y):
 	'''
 	plt.show()
 	
+def get_num_shares(data, std, mean):
+	return std*data + mean
+
 	
 #Get the data	
-train_feat, train_targ = training_data()			
+train_feat, train_targ = training_data()
+
+feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
+targ_std, targ_mean = get_stdnmean(train_targ, 1)
+			
 test_feat, test_targ = test_data()			
 
-
-
 #Normalize the data
-train_feat = normalize(train_feat)
-test_feat = normalize(test_feat)
-test_targ = normalize_targ(test_targ)
-train_targ = normalize_targ(train_targ)
+train_feat = normalize(train_feat, feat_mean, feat_std, len(train_feat[0]))
+test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
 
-#print train_feat
+train_targ = normalize(train_targ, targ_mean, targ_std, 1)
+test_targ = normalize(test_targ, targ_mean, targ_std, 1)
 
 #Find the weights!
 lr = linear_regression.linear_regression()
 model = lr.fit(train_feat, train_targ)
-print "Modelo: ", model
+#print "Modelo: ", model
 
-predict(model, test_feat, test_targ)
+predict(model, train_feat, train_targ)
 
 """
 # Create linear regression object

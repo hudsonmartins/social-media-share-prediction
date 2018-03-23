@@ -1,19 +1,20 @@
-import random
+import random, os.path
 import numpy as np
 
 class linear_regression():
 
 	def __init__ (self):
-		self.alpha = 0.3 #Learning rate
+		self.alpha = 0.1 #Learning rate
 		
 	def fit(self, x_train, y_train):
 		print "Training..."
-		bias = random.randint(-200,200)	#Initialize the bias as a random value
+		vec_error = []
+		bias = random.randint(-100, 100)	#Initialize the bias as a random value
 		theta = []
 
 		
 		for i in range(len(x_train[0])):
-			theta.append(random.randint(-200,200)) #Initialize theta as random values
+			theta.append(random.randint(-100, 100)) #Initialize theta as random values
 			
 		convergence = False
 		prev_error = 0
@@ -27,6 +28,7 @@ class linear_regression():
 		
 			error = self.calc_error(h, y_train) #Calculates the error	
 			print "Error: ", error
+			vec_error.append(error)
 			#print "Anterior: ", prev_error
 			
 			if round(prev_error,3) == round(error,3):
@@ -41,7 +43,10 @@ class linear_regression():
 			prev_error = error
 
 			
-		#print "Pesos ", bias, theta			
+		print "Pesos ", bias, theta			
+		
+		file_name = raw_input("Insira o nome do arquivo para salvar os dados\n")
+		self.save_results([bias, theta], vec_error, file_name)
 		return [bias, theta]
 		
 	def calc_error(self, h, y):	
@@ -73,3 +78,25 @@ class linear_regression():
 			gd.append(err/m)	
 			
 		return gd
+
+	def save_results(self, weights, error, file_name):
+		if not os.path.isdir('results'):
+			os.mkdir('results')
+			
+		if os.path.isfile('results/'+file_name):
+			myfile = open('results/'+file_name, 'a+')
+			myfile.write('-----------------------------------------------\n')
+			myfile.write('Learning Rate: '+ str(self.alpha))
+			myfile.write('\nWeights: '+str(weights))
+			myfile.write('\nError over time: '+str(error))
+
+			myfile.close()
+		else:
+			myfile = open('results/'+file_name, 'w+')
+			myfile.write('-----------------------------------------------\n')
+			myfile.write('Learning Rate: ')
+			myfile.write('Learning Rate: '+ str(self.alpha))
+			myfile.write('\nWeights: '+str(weights))
+			myfile.write('\nError over time: '+str(error))
+			myfile.close()
+			
