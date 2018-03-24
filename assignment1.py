@@ -1,4 +1,4 @@
-import random, linear_regression
+import random, linear_regression, normal_equation
 import numpy as np
 import matplotlib.pyplot as plt 
 from sklearn import linear_model
@@ -26,7 +26,7 @@ def training_data():
 			continue
 			
 		targets.append(row[len(row)-1])    #The target number of shares, the last column
-		#features.append([row[2]])
+		#features.append([row[2], row[3]])
 		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes
 		features.append(row[2:len(row)-1])
 
@@ -47,7 +47,7 @@ def test_data():
 			begin = False
 			continue
 		features.append(row[2:len(row)]) #Excluding the non-predictive attributes
-		#features.append([row[2]])
+		#features.append([row[2], row[3]])
 		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes
 		
 	begin = True		
@@ -68,7 +68,6 @@ def z_norm(x, mean, std):
 	return x
 
 def get_stdnmean(dataset, n_feat):
-	
 	
 	if n_feat > 1:
 		mean = []
@@ -113,10 +112,10 @@ def predict(model, x, y):
 	for i in range(len(x)):
 		outputs.append(model[0])
 		for j in range(len(x[0])):
-			outputs[i] += model[1][j] * x[i][j]
+			outputs[i] += model[j+1] * x[i][j]
 	
 	for i in range(len(outputs)):		
-		print "Predict = ", get_num_shares(outputs[i], targ_std, targ_mean), " Real = ", get_num_shares(y[i], targ_std, targ_mean)
+		print "Predict = ", outputs[i], " Real = ", y[i]
 	
 	plt.plot(outputs, 'bo', y, 'ro')
 	
@@ -128,55 +127,65 @@ def predict(model, x, y):
 	'''
 	plt.show()
 	
-def get_num_shares(data, std, mean):
-	return std*data + mean
 
-	
-#Get the data	
+def remove_outliers(dataset, targ):
+	n_examples = len(dataset)
+	n_feat = len(dataset[0])
+	new_dataset = []
+	new_targ = []
+	remove = False
+		
+	if n_feat > 1:
+		
+		
+		for i in range(n_examples):
+			remove = False
+			for j in range(n_feat):
+				#print "(",i,", ",j,")"
+				if (dataset[i][j] < feat_mean[j] - 5*feat_std[j]) or (dataset[i][j] > feat_mean[j] + 5*feat_std[j]):
+					if dataset[i][j] != 0.0 and dataset[i][j] != 1.0:
+						#print "outlier in ", i
+						remove = True
+						break
+				elif (targ[i] < targ_mean - 5*targ_std) or (targ[i] > targ_mean + 5*targ_std):
+					remove = True
+					break
+			if not remove:
+				#print "Added ", i
+				new_dataset.append(dataset[i])
+				new_targ.append(targ[i])
+							
+	return new_dataset, new_targ
+
+#------------------- Getting the data and removing outliers ----------------------------------------
 train_feat, train_targ = training_data()
 
 feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
 targ_std, targ_mean = get_stdnmean(train_targ, 1)
-			
+	
+train_feat, train_targ = remove_outliers(train_feat, train_targ)
+
+feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
+targ_std, targ_mean = get_stdnmean(train_targ, 1)
+
 test_feat, test_targ = test_data()			
 
-#Normalize the data
+#-------------------------- Normalizing the features -----------------------------------------------
 train_feat = normalize(train_feat, feat_mean, feat_std, len(train_feat[0]))
 test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
 
-train_targ = normalize(train_targ, targ_mean, targ_std, 1)
-test_targ = normalize(test_targ, targ_mean, targ_std, 1)
 
-#Find the weights!
+#-------------------------- Finding the weights ---------------------------------------------------
+"""
+# Linear Regression
 lr = linear_regression.linear_regression()
 model = lr.fit(train_feat, train_targ)
-#print "Modelo: ", model
-
+print "Modelo: ", model
 predict(model, train_feat, train_targ)
 
 """
-# Create linear regression object
-regr = linear_model.LinearRegression()
-# Train the model using the training sets
-regr.fit(train_feat, train_targ)
-#predict data
-pred = regr.predict(test_feat)
+#Normal Equations
+ne = normal_equation.normal_equation()
+model = ne.solve(train_feat, train_targ)
+predict(model, test_feat, test_targ)
 
-# The coefficients
-print('Thetas: ', regr.coef_)
-
-# The mean squared error
-print("Mean squared error: %.2f"
-      % mean_squared_error(test_targ, pred))
-# Explained variance score: 1 is perfect prediction
-print('Variance score: %.2f' % r2_score(test_targ, pred))
-
-# Plot outputs
-
-#print test_feat
-#plt.scatter(train_feat, train_targ,  color='black')
-#plt.plot(train_feat, pred, color='blue', linewidth=1)
-#plt.plot(pred, 'bo', test_targ, 'ro')
-
-#plt.show()
-"""

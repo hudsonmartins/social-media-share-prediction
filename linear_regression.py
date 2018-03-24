@@ -31,7 +31,7 @@ class linear_regression():
 			vec_error.append(error)
 			#print "Anterior: ", prev_error
 			
-			if round(prev_error,3) == round(error,3):
+			if round(prev_error, 5) == round(error, 5):
 				convergence += 1
 			else:
 				convergence = 0				
@@ -45,9 +45,10 @@ class linear_regression():
 			
 		print "Pesos ", bias, theta			
 		
-		file_name = raw_input("Insira o nome do arquivo para salvar os dados\n")
+		file_name = raw_input("Insert the file name to save the linear regression data\n")
 		self.save_results([bias, theta], vec_error, file_name)
-		return [bias, theta]
+		theta = np.append([bias], theta, axis=0)
+		return theta
 		
 	def calc_error(self, h, y):	
 		j = 0 #The error J
@@ -85,7 +86,7 @@ class linear_regression():
 			
 		if os.path.isfile('results/'+file_name):
 			myfile = open('results/'+file_name, 'a+')
-			myfile.write('-----------------------------------------------\n')
+			myfile.write('\n-----------------------------------------------\n')
 			myfile.write('Learning Rate: '+ str(self.alpha))
 			myfile.write('\nWeights: '+str(weights))
 			myfile.write('\nError over time: '+str(error))
@@ -93,7 +94,7 @@ class linear_regression():
 			myfile.close()
 		else:
 			myfile = open('results/'+file_name, 'w+')
-			myfile.write('-----------------------------------------------\n')
+			myfile.write('\n-----------------------------------------------\n')
 			myfile.write('Learning Rate: ')
 			myfile.write('Learning Rate: '+ str(self.alpha))
 			myfile.write('\nWeights: '+str(weights))
