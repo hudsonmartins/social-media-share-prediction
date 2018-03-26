@@ -46,8 +46,10 @@ class linear_regression():
 		print "Pesos ", bias, theta			
 		
 		file_name = raw_input("Insert the file name to save the linear regression data\n")
-		self.save_results([bias, theta], vec_error, file_name)
+
 		theta = np.append([bias], theta, axis=0)
+		self.save_results(theta, vec_error, file_name)
+		
 		return theta
 		
 	def calc_error(self, h, y):	

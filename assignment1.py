@@ -1,4 +1,4 @@
-import random, linear_regression, normal_equation
+import random, math, linear_regression, normal_equation
 import numpy as np
 import matplotlib.pyplot as plt 
 from sklearn import linear_model
@@ -24,11 +24,11 @@ def training_data():
 		if begin:
 			begin = False
 			continue
-			
-		targets.append(row[len(row)-1])    #The target number of shares, the last column
+		targets.append(row[len(row)-1])    #The target number of shares, the last column		
+ 		features.append([row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30], row[39], row[40], row[41], row[42], row[43], row[44], row[45], row[46], row[47], row[48], row[49], row[50], row[51], row[52], row[53], row[54], row[55], row[56], row[57], row[58], row[59]]) #Excluding discrete attributes
 		#features.append([row[2], row[3]])
 		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes
-		features.append(row[2:len(row)-1])
+		#features.append(row[2:len(row)-1])
 
 	return features, targets			
 
@@ -46,10 +46,10 @@ def test_data():
 		if begin:
 			begin = False
 			continue
-		features.append(row[2:len(row)]) #Excluding the non-predictive attributes
+		#features.append(row[2:len(row)]) #Excluding the non-predictive attributes
 		#features.append([row[2], row[3]])
-		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes
-		
+		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes	
+		features.append([row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30], row[39], row[40], row[41], row[42], row[43], row[44], row[45], row[46], row[47], row[48], row[49], row[50], row[51], row[52], row[53], row[54], row[55], row[56], row[57], row[58], row[59]]) #Excluding discrete attributes
 	begin = True		
 	for row in target_file:
 		if begin:
@@ -113,18 +113,21 @@ def predict(model, x, y):
 		outputs.append(model[0])
 		for j in range(len(x[0])):
 			outputs[i] += model[j+1] * x[i][j]
-	
+	diff = []
 	for i in range(len(outputs)):		
 		print "Predict = ", outputs[i], " Real = ", y[i]
-	
-	plt.plot(outputs, 'bo', y, 'ro')
-	
-	
-	'''
-	plt.plot(x, outputs, 'bo')
-	plt.plot(x, y, 'ro')
+		print "percentage error = ", abs(outputs[i]-y[i])/y[i]
+		diff.append(abs(outputs[i]-y[i])/y[i])
 
-	'''
+	n_correct = 0
+	for value in diff:
+		if value < 0.2:
+			n_correct += 1
+	
+	print "Number of correct predictions = ", n_correct
+	print "Data size = ", len(y)
+	#plt.plot(outputs, 'bo', y, 'ro')
+	
 	plt.show()
 	
 
@@ -162,7 +165,7 @@ train_feat, train_targ = training_data()
 
 feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
 targ_std, targ_mean = get_stdnmean(train_targ, 1)
-	
+
 train_feat, train_targ = remove_outliers(train_feat, train_targ)
 
 feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
@@ -182,8 +185,9 @@ lr = linear_regression.linear_regression()
 model = lr.fit(train_feat, train_targ)
 print "Modelo: ", model
 predict(model, train_feat, train_targ)
-
 """
+
+
 #Normal Equations
 ne = normal_equation.normal_equation()
 model = ne.solve(train_feat, train_targ)
