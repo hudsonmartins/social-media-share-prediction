@@ -3,7 +3,7 @@ import os.path
 
 class normal_equation():
 	def __init__ (self):
-		self.max_examples = 5000
+		self.max_examples = 50000
 			
 	def solve(self, x_train, y_train):
 		print "Training..."

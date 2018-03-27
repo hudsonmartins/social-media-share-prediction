@@ -1,4 +1,4 @@
-import random, math, linear_regression, normal_equation
+import random, math, gradient_descent, normal_equation
 import numpy as np
 import matplotlib.pyplot as plt 
 from sklearn import linear_model
@@ -19,18 +19,47 @@ def training_data():
 	
 	features = []
 	targets = []
+	n_rows = 0
 	
 	for row in train_file:
+		n_rows += 1
+		if n_rows > 8000:
+			break
+			
 		if begin:
 			begin = False
 			continue
+			
 		targets.append(row[len(row)-1])    #The target number of shares, the last column		
- 		features.append([row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30], row[39], row[40], row[41], row[42], row[43], row[44], row[45], row[46], row[47], row[48], row[49], row[50], row[51], row[52], row[53], row[54], row[55], row[56], row[57], row[58], row[59]]) #Excluding discrete attributes
-		#features.append([row[2], row[3]])
 		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes
 		#features.append(row[2:len(row)-1])
+		increase_feat = []
+		
+		for i in range(2,len(row)-1):
+			#excluding discrete data
+			if (i > 12 and i < 19) or (i > 30 and i < 39):
+				continue
+			
+			increase_feat.append(row[i])
+			for j in range(2,11):
+				increase_feat.append(row[i]**j)
+	
+			for k in range (2, len(row)-1):
+				if(i > k) and (i-k-1 > 1):
+					increase_feat.append(row[i]*row[i-k-1])
+					"""
+					for j in range(2,11):
+						increase_feat.append((row[i]**j)*row[i-k-1])
+						increase_feat.append(row[i]*row[i-k-1]**j)
+						increase_feat.append((row[i]**j)*row[i-k-1]**j)
+					"""
+				else:
+					break
+				
+		features.append(increase_feat)
+		
 
-	return features, targets			
+	return features, targets, len(train_file[0])-3			
 
 def test_data():
 	"""
@@ -49,7 +78,30 @@ def test_data():
 		#features.append(row[2:len(row)]) #Excluding the non-predictive attributes
 		#features.append([row[2], row[3]])
 		#features.append([row[2], row[3], row[7], row[9], row[10], row[12], row[30], row[46], row[47]]) #Excluding some attributes	
-		features.append([row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30], row[39], row[40], row[41], row[42], row[43], row[44], row[45], row[46], row[47], row[48], row[49], row[50], row[51], row[52], row[53], row[54], row[55], row[56], row[57], row[58], row[59]]) #Excluding discrete attributes
+		increase_feat = []
+		
+		for i in range(2,len(row)):
+			#excluding discrete data
+			if (i > 12 and i < 19) or (i > 30 and i < 39):
+				continue
+			
+			increase_feat.append(row[i])
+			for j in range(2,11):
+				increase_feat.append(row[i]**j)
+	
+			#for k in range (2, len(row)):
+			#	if(i>k):
+			#		increase_feat.append(row[i]*row[i-k-1])
+				
+					#for j in range(2,11):
+					#	increase_feat.append((row[i]**j)*row[i-k-1])
+					#	increase_feat.append(row[i]*row[i-k-1]**j)
+					#	increase_feat.append((row[i]**j)*row[i-k-1]**j)
+			#	else:
+			#		break
+		
+		features.append(increase_feat)
+		
 	begin = True		
 	for row in target_file:
 		if begin:
@@ -68,6 +120,9 @@ def z_norm(x, mean, std):
 	return x
 
 def get_stdnmean(dataset, n_feat):
+	"""
+		Calculates the standard deviation and mean for a given dataset
+	"""
 	
 	if n_feat > 1:
 		mean = []
@@ -106,6 +161,9 @@ def normalize(dataset, mean, std, n_feat):
 	return dataset
 
 def predict(model, x, y):
+	"""
+		Finds the output for the model and compare to the ground truth
+	"""
 	
 	outputs = []
 	
@@ -121,7 +179,7 @@ def predict(model, x, y):
 
 	n_correct = 0
 	for value in diff:
-		if value < 0.2:
+		if value < 0.1:
 			n_correct += 1
 	
 	print "Number of correct predictions = ", n_correct
@@ -131,26 +189,26 @@ def predict(model, x, y):
 	plt.show()
 	
 
-def remove_outliers(dataset, targ):
+def remove_outliers(dataset, targ, n_feat):
+	"""
+		Remove the rows that contains outliers in both features and target
+	"""
 	n_examples = len(dataset)
-	n_feat = len(dataset[0])
 	new_dataset = []
 	new_targ = []
 	remove = False
 		
 	if n_feat > 1:
-		
-		
 		for i in range(n_examples):
 			remove = False
 			for j in range(n_feat):
 				#print "(",i,", ",j,")"
-				if (dataset[i][j] < feat_mean[j] - 5*feat_std[j]) or (dataset[i][j] > feat_mean[j] + 5*feat_std[j]):
+				if (dataset[i][j] < feat_mean[j] - 2*feat_std[j]) or (dataset[i][j] > feat_mean[j] + 2*feat_std[j]):
 					if dataset[i][j] != 0.0 and dataset[i][j] != 1.0:
 						#print "outlier in ", i
 						remove = True
 						break
-				elif (targ[i] < targ_mean - 5*targ_std) or (targ[i] > targ_mean + 5*targ_std):
+				elif (targ[i] < targ_mean - 2*targ_std) or (targ[i] > targ_mean + 2*targ_std):
 					remove = True
 					break
 			if not remove:
@@ -161,12 +219,16 @@ def remove_outliers(dataset, targ):
 	return new_dataset, new_targ
 
 #------------------- Getting the data and removing outliers ----------------------------------------
-train_feat, train_targ = training_data()
 
+train_feat, train_targ, n_feat_init = training_data()
+print "Number of features ", len(train_feat[0])
+#print len(train_feat)
+
+print "Preparing data..."
 feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
 targ_std, targ_mean = get_stdnmean(train_targ, 1)
 
-train_feat, train_targ = remove_outliers(train_feat, train_targ)
+train_feat, train_targ = remove_outliers(train_feat, train_targ, n_feat_init)
 
 feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
 targ_std, targ_mean = get_stdnmean(train_targ, 1)
@@ -174,22 +236,41 @@ targ_std, targ_mean = get_stdnmean(train_targ, 1)
 test_feat, test_targ = test_data()			
 
 #-------------------------- Normalizing the features -----------------------------------------------
+print "Normalizing..."
 train_feat = normalize(train_feat, feat_mean, feat_std, len(train_feat[0]))
 test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
 
 
 #-------------------------- Finding the weights ---------------------------------------------------
-"""
-# Linear Regression
-lr = linear_regression.linear_regression()
-model = lr.fit(train_feat, train_targ)
+
+# Gradient Descent
+gd = gradient_descent.gradient_descent()
+model = gd.fit(train_feat, train_targ)
 print "Modelo: ", model
+
+predict(model, train_feat, train_targ)
+
+
+"""
+#Normal Equations
+ne = normal_equation.normal_equation()
+model = ne.solve(train_feat, train_targ)
 predict(model, train_feat, train_targ)
 """
 
 
-#Normal Equations
-ne = normal_equation.normal_equation()
-model = ne.solve(train_feat, train_targ)
-predict(model, test_feat, test_targ)
-
+"""
+#SKLearn Model
+regr = linear_model.LinearRegression()
+# Train the model using the training sets
+regr.fit(train_feat, train_targ)
+# Make predictions using the testing set
+pred = regr.predict(test_feat)
+# The coefficients
+print('Coefficients: \n', regr.coef_)
+# The mean squared error
+print("Mean squared error: %.2f"
+      % mean_squared_error(test_targ, pred))
+# Explained variance score: 1 is perfect prediction
+print('Variance score: %.2f' % r2_score(test_targ, pred))
+"""
