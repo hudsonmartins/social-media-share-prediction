@@ -41,18 +41,18 @@ def training_data():
 				continue
 			
 			increase_feat.append(row[i])
-			for j in range(2,11):
+			for j in range(2,16):
 				increase_feat.append(row[i]**j)
 	
 			for k in range (2, len(row)-1):
 				if(i > k) and (i-k-1 > 1):
 					increase_feat.append(row[i]*row[i-k-1])
-					
+					"""
 					for j in range(2,11):
 						increase_feat.append((row[i]**j)*row[i-k-1])
 						increase_feat.append(row[i]*row[i-k-1]**j)
 						increase_feat.append((row[i]**j)*row[i-k-1]**j)
-					
+					"""
 				else:
 					break
 				
