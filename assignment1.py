@@ -47,12 +47,12 @@ def training_data():
 			for k in range (2, len(row)-1):
 				if(i > k) and (i-k-1 > 1):
 					increase_feat.append(row[i]*row[i-k-1])
-					"""
+					
 					for j in range(2,11):
 						increase_feat.append((row[i]**j)*row[i-k-1])
 						increase_feat.append(row[i]*row[i-k-1]**j)
 						increase_feat.append((row[i]**j)*row[i-k-1]**j)
-					"""
+					
 				else:
 					break
 				
@@ -242,7 +242,7 @@ test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
 
 
 #-------------------------- Finding the weights ---------------------------------------------------
-
+"""
 # Gradient Descent
 gd = gradient_descent.gradient_descent()
 model = gd.fit(train_feat, train_targ)
@@ -251,7 +251,7 @@ print "Modelo: ", model
 predict(model, train_feat, train_targ)
 
 
-"""
+
 #Normal Equations
 ne = normal_equation.normal_equation()
 model = ne.solve(train_feat, train_targ)
@@ -259,18 +259,18 @@ predict(model, train_feat, train_targ)
 """
 
 
-"""
+
 #SKLearn Model
 regr = linear_model.LinearRegression()
 # Train the model using the training sets
 regr.fit(train_feat, train_targ)
 # Make predictions using the testing set
-pred = regr.predict(test_feat)
+pred = regr.predict(train_feat)
 # The coefficients
 print('Coefficients: \n', regr.coef_)
 # The mean squared error
 print("Mean squared error: %.2f"
-      % mean_squared_error(test_targ, pred))
+      % mean_squared_error(train_targ, pred))
 # Explained variance score: 1 is perfect prediction
-print('Variance score: %.2f' % r2_score(test_targ, pred))
-"""
+print('Variance score: %.2f' % r2_score(train_targ, pred))
+
