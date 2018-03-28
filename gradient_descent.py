@@ -5,7 +5,7 @@ class gradient_descent():
 
 	def __init__ (self):
 		self.alpha = 0.01 #Learning rate
-		self.max_examples = 50000
+
 		
 	def fit(self, x_train, y_train):
 		print "Training..."
@@ -14,7 +14,7 @@ class gradient_descent():
 		bias = random.randint(-100, 100)	#Initialize the bias as a random value
 		theta = []
 
-		x_train, y_train = self.reduce_examples(x_train, y_train)
+
 		for i in range(len(x_train[0])):
 			theta.append(random.randint(-100, 100)) #Initialize theta as random values
 			
@@ -26,24 +26,24 @@ class gradient_descent():
 		while(convergence < 200):	
 			n_iterations += 1
 			h = []
+			
 			for i in range(len(x_train)):
 				h.append(bias)  # h = theta0
 				for j in range(len(theta)):
 					h[i] += theta[j]*x_train[i][j] # h = theta0 + sum(theta_i * x_i)
 		
 			error = self.calc_error(h, y_train) #Calculates the error	
-			if n_iterations % 100 == 0:
-				print "Error: ", error
+			if n_iterations % 10 == 0:
+				print "Epoch: ", n_iterations ," Error: ", error
 				
 			vec_error.append(error)
-			#print "Anterior: ", prev_error
-			
+						
 			if round(prev_error, 5) == round(error, 5):
 				convergence += 1
 			else:
 				convergence = 0				
 			gd = self.gradient(h, x_train, y_train) #Calculates the gradient descent
-			#print gd
+			
 			bias = bias - self.alpha*gd[0]
 			for i in range(len(gd)-1):
 				theta[i] = theta[i] - self.alpha*gd[i+1]
@@ -89,25 +89,6 @@ class gradient_descent():
 			
 		return gd
 	
-	def reduce_examples(self, X, y):
-		"""
-		Reduce the number of examples, so the algorithm doesn't takes too long to finish
-		"""
-		m = len(X) #number of examples
-		new_X = []
-		new_y = []
-		if m > self.max_examples:
-			for i in range(m):
-				if(i < self.max_examples):
-					new_X.append(X[i])
-					new_y.append(y[i])
-				else:
-					break
-			
-			return new_X, np.transpose(new_y)
-		else:
-			return X, y
-
 	def save_results(self, weights, error, file_name, n_iterations):
 		if not os.path.isdir('results'):
 			os.mkdir('results')
