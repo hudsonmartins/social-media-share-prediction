@@ -53,15 +53,8 @@ class normal_equation():
 	def save_results(self, weights, file_name):
 		if not os.path.isdir('results'):
 			os.mkdir('results')
-			
-		if os.path.isfile('results/'+file_name):
-			myfile = open('results/'+file_name, 'a+')
-			myfile.write('-----------------------------------------------\n')
-			myfile.write('Weights: '+str(weights)+'\n')
-			myfile.close()
-		else:
-			myfile = open('results/'+file_name, 'w+')
-			myfile.write('-----------------------------------------------\n')
-			myfile.write('Weights: '+str(weights)+'\n')
-			myfile.close()
-			
+		
+		limit = '-----------------------------------------------\n'			
+		np.savetxt('results/'+file_name, weights, fmt = '%10.3f' ,header = limit, footer = limit)
+
+

@@ -23,8 +23,8 @@ def training_data():
 	
 	for row in train_file:
 		n_rows += 1
-		#if n_rows > 8000:
-		#	break
+		if n_rows > 6000:
+			break
 			
 		if begin:
 			begin = False
@@ -76,28 +76,31 @@ def test_data():
 	return features, targets
 
 def increase_features(features):
-
+	"""
+		Increase the number of features to get a better model
+	"""
+	
 	new_features = []
 	for row in features:
 		increased = []
 		for i in range(len(row)):
 			increased.append(row[i])
 		
-			for j in range(2,16):
-				increased.append(row[i]**j)
-			"""
+			for j in range(2, 21):
+				increased.append(row[i]**j) #880 feat
+			
 			for k in range (2, len(row)-1):
 				if(i > k) and (i-k-1 >= 0):
-					increased.append(row[i]*row[i-k-1])
-				
-					for j in range(2,5):
+					increased.append(row[i]*row[i-k-1])	#1741 feat
+			
+					for j in range(2,4):  #2: 4324, 3: 6907
 						increased.append((row[i]**j)*row[i-k-1])
 						increased.append(row[i]*row[i-k-1]**j)
 						increased.append((row[i]**j)*row[i-k-1]**j)
 				
 				else:
 					break
-			"""
+
 
 		new_features.append(increased)
 
@@ -168,8 +171,8 @@ def predict(model, x, y):
 	
 	diff = []
 	for i in range(len(outputs)):		
-		print "Predict = ", outputs[i], " Real = ", y[i]
-		print "percentage error = ", abs(outputs[i]-y[i])/y[i]
+		#print "Predict = ", outputs[i], " Real = ", y[i]
+		#print "percentage error = ", abs(outputs[i]-y[i])/y[i]
 		diff.append(abs(outputs[i]-y[i])/y[i])
 
 	n_correct = 0
@@ -226,6 +229,8 @@ targ_std, targ_mean = get_stdnmean(train_targ, 1)
 print "Removing outliers"
 train_feat, train_targ = remove_outliers(train_feat, train_targ, n_feat_init)
 
+print "Number of examples: ", len(train_feat)
+
 print "Increasing features"
 train_feat = increase_features(train_feat)
 test_feat = increase_features(test_feat)
@@ -236,7 +241,7 @@ print "Number of features: ", len(train_feat[0])
 print "Normalizing..."
 feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
 train_feat = normalize(train_feat, feat_mean, feat_std, len(train_feat[0]))
-#test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
+test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
 
 
 #-------------------------- Finding the weights ---------------------------------------------------
@@ -246,14 +251,23 @@ gd = gradient_descent.gradient_descent()
 model = gd.fit(train_feat, train_targ)
 print "Modelo: ", model
 
+print "Results on training data"
 predict(model, train_feat, train_targ)
+
+print "Results on testing data"
+predict(model, test_feat, test_targ)
 
 
 """
 #Normal Equations
 ne = normal_equation.normal_equation()
 model = ne.solve(train_feat, train_targ)
+
+print "Results on training data"
 predict(model, train_feat, train_targ)
+
+print "Results on testing data"
+predict(model, test_feat, test_targ)
 """
 
 """

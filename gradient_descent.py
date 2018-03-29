@@ -4,7 +4,7 @@ import numpy as np
 class gradient_descent():
 
 	def __init__ (self):
-		self.alpha = 0.01 #Learning rate
+		self.alpha = 0.01	 #Learning rate
 
 		
 	def fit(self, x_train, y_train):
@@ -38,7 +38,7 @@ class gradient_descent():
 				
 			vec_error.append(error)
 						
-			if round(prev_error, 5) == round(error, 5):
+			if round(prev_error, 3) == round(error, 3):
 				convergence += 1
 			else:
 				convergence = 0				
