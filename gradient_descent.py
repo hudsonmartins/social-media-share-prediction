@@ -1,11 +1,12 @@
-import random, os.path
+import random, os.path, plot_error
 import numpy as np
 
 class gradient_descent():
 
-	def __init__ (self):
-		self.alpha = 0.01	 #Learning rate
-
+	def __init__ (self, reg):
+		self.alpha = 0.001	 #Learning rate
+		self.lamb = 10		#Regularization param
+		self.regularization = reg  #True if there is regularization
 		
 	def fit(self, x_train, y_train):
 		print "Training..."
@@ -26,8 +27,8 @@ class gradient_descent():
 		while(convergence < 200):	
 			n_iterations += 1
 			h = []
-			
-			for i in range(len(x_train)):
+			m = len(x_train) #number of examples
+			for i in range(m):
 				h.append(bias)  # h = theta0
 				for j in range(len(theta)):
 					h[i] += theta[j]*x_train[i][j] # h = theta0 + sum(theta_i * x_i)
@@ -38,15 +39,20 @@ class gradient_descent():
 				
 			vec_error.append(error)
 						
-			if round(prev_error, 3) == round(error, 3):
+			if round(prev_error, 1) == round(error, 1):
 				convergence += 1
 			else:
 				convergence = 0				
 			gd = self.gradient(h, x_train, y_train) #Calculates the gradient descent
 			
 			bias = bias - self.alpha*gd[0]
-			for i in range(len(gd)-1):
-				theta[i] = theta[i] - self.alpha*gd[i+1]
+			if self.regularization:
+				for i in range(len(gd)-1):
+					theta[i] = theta[i] - self.alpha*(gd[i+1] + (self.lamb/m) * theta[i])
+			else:
+				for i in range(len(gd)-1):
+					theta[i] = theta[i] - self.alpha*gd[i+1]
+			
 			prev_error = error
 
 			
@@ -56,6 +62,7 @@ class gradient_descent():
 
 		theta = np.append([bias], theta, axis=0)
 		self.save_results(theta, vec_error, file_name, n_iterations)
+		plot_error.plot(vec_error)
 		
 		return theta
 		
@@ -68,7 +75,7 @@ class gradient_descent():
 			
 		j = j/(2*m)
 		
-		return j
+		return j 	
 		
 	def gradient(self, h, x, y):
 		gd = []

@@ -2,8 +2,10 @@ import numpy as np
 import os.path
 
 class normal_equation():
-	def __init__ (self):
+	def __init__ (self, reg):
 		self.max_examples = 50000
+		self.regularization = reg
+		self.lamb = 1	
 			
 	def solve(self, x_train, y_train):
 		print "Training..."
@@ -12,19 +14,24 @@ class normal_equation():
 		
 		n = len(X[0]) #Number of features
 		m = len(X) #Number of examples
-		
+			
 	
 		x_bias = np.ones((m, 1))
-		
-		#theta = inv(X^T * X) * X^T * y
-
 		X = np.append(x_bias, X, 1)
-		
 		X_transpose = np.transpose(X) 
-		theta = np.linalg.pinv(X_transpose.dot(X))
+		if self.regularization:
+			#theta = inv(X^T * X + lamb * [reg matrix]) * X^T * y			
+			reg_matrix = np.identity(X.shape[1])
+			reg_matrix[0,0] = 0		
+			theta = np.linalg.pinv(X_transpose.dot(X) + self.lamb*reg_matrix)					
+		else:
+			#theta = inv(X^T * X) * X^T * y
+			theta = np.linalg.pinv(X_transpose.dot(X))		
+					
 		theta = theta.dot(X_transpose)
 		theta = theta.dot(y)
 		
+				
 		print theta
 		
 		file_name = raw_input("Insert the file name to save the normal equation data\n")

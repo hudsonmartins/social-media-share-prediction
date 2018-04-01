@@ -23,8 +23,8 @@ def training_data():
 	
 	for row in train_file:
 		n_rows += 1
-		if n_rows > 6000:
-			break
+		#if n_rows > 10000:
+		#	break
 			
 		if begin:
 			begin = False
@@ -86,21 +86,25 @@ def increase_features(features):
 		for i in range(len(row)):
 			increased.append(row[i])
 		
+			for j in range(2, 10):
+				increased.append(row[i]**j)
+				
+			"""
 			for j in range(2, 21):
 				increased.append(row[i]**j) #880 feat
 			
 			for k in range (2, len(row)-1):
 				if(i > k) and (i-k-1 >= 0):
 					increased.append(row[i]*row[i-k-1])	#1741 feat
-			
-					for j in range(2,4):  #2: 4324, 3: 6907
+											
+					for j in range(2,4):  #2: 4324, 3: 6907, 4: 9490
 						increased.append((row[i]**j)*row[i-k-1])
 						increased.append(row[i]*row[i-k-1]**j)
 						increased.append((row[i]**j)*row[i-k-1]**j)
-				
+					
 				else:
 					break
-
+			"""
 
 		new_features.append(increased)
 
@@ -170,18 +174,37 @@ def predict(model, x, y):
 			outputs[i] += model[j+1] * x[i][j]
 	
 	diff = []
+	erro = []
 	for i in range(len(outputs)):		
 		#print "Predict = ", outputs[i], " Real = ", y[i]
 		#print "percentage error = ", abs(outputs[i]-y[i])/y[i]
-		diff.append(abs(outputs[i]-y[i])/y[i])
+		erro.append(abs(outputs[i]-y[i]))
+		diff.append(erro[i]/y[i])
 
+	
+	n_correct = 0
+	for value in diff:
+		if value < 0.05:
+			n_correct += 1
+	print "Number of correct predictions (5%) = ", n_correct	
+	
 	n_correct = 0
 	for value in diff:
 		if value < 0.1:
 			n_correct += 1
 	
-	print "Number of correct predictions = ", n_correct
+	print "Number of correct predictions (10%) = ", n_correct
+	
+	n_correct = 0
+	for value in diff:
+		if value < 0.2:
+			n_correct += 1
+	
+	print "Number of correct predictions (20%) = ", n_correct
 	print "Data size = ", len(y)
+		
+	print "Mean error = ", sum(erro)/len(y)
+
 	#plt.plot(outputs, 'bo', y, 'ro')
 	
 	plt.show()
@@ -219,6 +242,7 @@ def remove_outliers(dataset, targ, n_feat):
 
 #------------------- Getting the data and removing outliers ----------------------------------------
 
+print "Starting..."
 train_feat, train_targ, n_feat_init = training_data()
 test_feat, test_targ = test_data()
 
@@ -231,10 +255,11 @@ train_feat, train_targ = remove_outliers(train_feat, train_targ, n_feat_init)
 
 print "Number of examples: ", len(train_feat)
 
+
 print "Increasing features"
 train_feat = increase_features(train_feat)
 test_feat = increase_features(test_feat)
-
+		
 print "Number of features: ", len(train_feat[0])
 
 #-------------------------- Normalizing the features -----------------------------------------------
@@ -243,11 +268,10 @@ feat_std, feat_mean = get_stdnmean(train_feat, len(train_feat[0]))
 train_feat = normalize(train_feat, feat_mean, feat_std, len(train_feat[0]))
 test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
 
-
 #-------------------------- Finding the weights ---------------------------------------------------
-
+#"""
 # Gradient Descent
-gd = gradient_descent.gradient_descent()
+gd = gradient_descent.gradient_descent(reg=True)
 model = gd.fit(train_feat, train_targ)
 print "Modelo: ", model
 
@@ -256,11 +280,11 @@ predict(model, train_feat, train_targ)
 
 print "Results on testing data"
 predict(model, test_feat, test_targ)
-
+#"""
 
 """
 #Normal Equations
-ne = normal_equation.normal_equation()
+ne = normal_equation.normal_equation(reg=False)
 model = ne.solve(train_feat, train_targ)
 
 print "Results on training data"
