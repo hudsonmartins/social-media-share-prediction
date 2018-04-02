@@ -4,7 +4,7 @@ import numpy as np
 class gradient_descent():
 
 	def __init__ (self, reg):
-		self.alpha = 0.001	 #Learning rate
+		self.alpha = 0.01	 #Learning rate
 		self.lamb = 10		#Regularization param
 		self.regularization = reg  #True if there is regularization
 		
@@ -24,7 +24,7 @@ class gradient_descent():
 		convergence = 0
 		n_iterations = 0
 		
-		while(convergence < 200):	
+		while(convergence < 2):	
 			n_iterations += 1
 			h = []
 			m = len(x_train) #number of examples

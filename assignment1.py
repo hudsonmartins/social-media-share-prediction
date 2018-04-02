@@ -23,7 +23,7 @@ def training_data():
 	
 	for row in train_file:
 		n_rows += 1
-		#if n_rows > 10000:
+		#if n_rows > 1000:
 		#	break
 			
 		if begin:
@@ -86,10 +86,7 @@ def increase_features(features):
 		for i in range(len(row)):
 			increased.append(row[i])
 		
-			for j in range(2, 10):
-				increased.append(row[i]**j)
-				
-			"""
+			
 			for j in range(2, 21):
 				increased.append(row[i]**j) #880 feat
 			
@@ -104,7 +101,7 @@ def increase_features(features):
 					
 				else:
 					break
-			"""
+			
 
 		new_features.append(increased)
 
@@ -256,9 +253,9 @@ train_feat, train_targ = remove_outliers(train_feat, train_targ, n_feat_init)
 print "Number of examples: ", len(train_feat)
 
 
-print "Increasing features"
-train_feat = increase_features(train_feat)
-test_feat = increase_features(test_feat)
+#print "Increasing features"
+#train_feat = increase_features(train_feat)
+#test_feat = increase_features(test_feat)
 		
 print "Number of features: ", len(train_feat[0])
 
@@ -269,9 +266,9 @@ train_feat = normalize(train_feat, feat_mean, feat_std, len(train_feat[0]))
 test_feat = normalize(test_feat, feat_mean, feat_std, len(test_feat[0]))
 
 #-------------------------- Finding the weights ---------------------------------------------------
-#"""
+
 # Gradient Descent
-gd = gradient_descent.gradient_descent(reg=True)
+gd = gradient_descent.gradient_descent(reg=False)
 model = gd.fit(train_feat, train_targ)
 print "Modelo: ", model
 
@@ -280,7 +277,7 @@ predict(model, train_feat, train_targ)
 
 print "Results on testing data"
 predict(model, test_feat, test_targ)
-#"""
+
 
 """
 #Normal Equations
@@ -297,20 +294,23 @@ predict(model, test_feat, test_targ)
 """
 #SKLearn Model
 print "Training..."
-regr = linear_model.LinearRegression(fit_intercept=True)
+regr = linear_model.LinearRegression()
 # Train the model using the training sets
 regr.fit(train_feat, train_targ)
 # Make predictions using the testing set
 pred = regr.predict(train_feat)
+
 # The coefficients
-print('Coefficients: \n', regr.coef_)
-model = regr.coef_
+#print('Coefficients: ', regr.coef_)
+#print ('Intercept: ',regr.intercept_)
+
+model = np.append([regr.intercept_], regr.coef_)
 
 predict(model, train_feat, train_targ)
-
+predict(model, test_feat, test_targ)
 # The mean squared error
-print("Mean squared error: %.2f" % mean_squared_error(train_targ, pred))
+#print("Mean squared error: %.2f" % mean_squared_error(train_targ, pred))
 
 # Explained variance score: 1 is perfect prediction
-print('Variance score: %.2f' % r2_score(train_targ, pred))
+#print('Variance score: %.2f' % r2_score(train_targ, pred))
 """
